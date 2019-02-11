@@ -7,10 +7,12 @@ import {
   Input,
   Button,
 } from 'semantic-ui-react';
+import { connect } from 'react-redux';
 
+import { setCurrentChannel } from '../../actions/index';
 import firebase from '../../firebase';
 
-export default class Channels extends Component {
+class Channels extends Component {
   state = {
     channels: [],
     isModalOpen: false,
@@ -60,6 +62,10 @@ export default class Channels extends Component {
     });
   }
 
+  setCurrentChannel = channel => {
+    this.props.setCurrentChannel(channel);
+  }
+
   componentDidMount = () => {
     this.addListeners();
   }
@@ -91,12 +97,13 @@ export default class Channels extends Component {
     }
   }
 
+
   renderChannels = channels => (
     channels.length > 0 && channels.map(channel => (
       <Menu.Item
         key={channel.id}
         name={channel.name}
-        onClick={() => console.log(channel)}
+        onClick={() => this.setCurrentChannel(channel)}
         style={{ opacity: 0.7 }}
       >
         # {channel.name}
@@ -175,3 +182,5 @@ export default class Channels extends Component {
     )
   }
 }
+
+export default connect(null, { setCurrentChannel })(Channels);
