@@ -8,6 +8,7 @@ import {
   Button,
 } from 'semantic-ui-react';
 
+import firebase from '../../firebase';
 
 export default class Channels extends Component {
   state = {
@@ -15,19 +16,93 @@ export default class Channels extends Component {
     isModalOpen: false,
     channelName: '',
     channelDetails: '',
+    channelsRef: firebase.database().ref('channels'),
+    user: this.props.user,
   }
 
-  closeModal = () => {
-    this.setState({ isModalOpen: false });
+  addChanel = () => {
+    const {
+      channelName,
+      channelDetails,
+      channelsRef,
+      user,
+    } = this.state;
+
+    const key = channelsRef.push().key;
+
+    const newChannel = {
+      id: key,
+      name: channelName,
+      details: channelDetails,
+      createdBy: {
+        name: user.displayName,
+        avatar: user.photoURL,
+      }
+    }
+
+    channelsRef
+      .child(key)
+      .update(newChannel)
+      .then(() => {
+        this.closeModal();
+      })
+      .catch(error => {
+        console.error(error);
+      });
   }
+
+  addListeners = () => {
+    const addedChannels = [];
+
+    this.state.channelsRef.on('child_added', snap => {
+      addedChannels.push(snap.val());
+      this.setState({ channels: addedChannels });
+    });
+  }
+
+  componentDidMount = () => {
+    this.addListeners();
+  }
+
+
+  closeModal = () => {
+    this.setState({
+      isModalOpen: false,
+      channelName: '',
+      channelDetails: '',
+    });
+  }
+
+  isFormValid = ({ channelName, channelDetails }) => channelName && channelDetails;
 
   openModal = () => {
     this.setState({ isModalOpen: true });
   }
 
-  handleInputChange = e => {
-    this.setState({ [e.target.name]: e.target.value });
+  handleInputChange = event => {
+    this.setState({ [event.target.name]: event.target.value });
   }
+
+  handleSubmit = event => {
+    event.preventDefault();
+
+    if (this.isFormValid(this.state)) {
+      this.addChanel();
+    }
+  }
+
+  renderChannels = channels => (
+    channels.length > 0 && channels.map(channel => (
+      <Menu.Item
+        key={channel.id}
+        name={channel.name}
+        onClick={() => console.log(channel)}
+        style={{ opacity: 0.7 }}
+      >
+        # {channel.name}
+      </Menu.Item>
+    ))
+  )
 
   render() {
     const {
@@ -48,6 +123,7 @@ export default class Channels extends Component {
             ({channels.length}) <Icon name='add' onClick={this.openModal} />
           </Menu.Item>
 
+          {this.renderChannels(channels)}
         </Menu.Menu>
 
         <Modal
@@ -57,14 +133,14 @@ export default class Channels extends Component {
         >
           <Modal.Header>Add a Channel</Modal.Header>
           <Modal.Content>
-            <Form>
+            <Form onSubmit={this.handleSubmit}>
               <Form.Field>
                 <Input
                   fluid
                   name='channelName'
                   onChange={this.handleInputChange}
-                  // value={channelName}
                   label='Channel Name'
+                  value={channelName}
                 />
               </Form.Field>
               <Form.Field>
@@ -72,17 +148,25 @@ export default class Channels extends Component {
                   fluid
                   name='channelDetails'
                   onChange={this.handleInputChange}
-                  // value={channelDetails}
                   label='About the Channel'
+                  value={channelDetails}
                 />
               </Form.Field>
             </Form>
           </Modal.Content>
           <Modal.Actions>
-            <Button color='green' inverted>
+            <Button
+              color='green'
+              inverted
+              onClick={this.handleSubmit}
+            >
               <Icon name='checkmark' /> Add
             </Button>
-            <Button color='red' inverted>
+            <Button
+              color='red'
+              inverted
+              onClick={this.closeModal}
+            >
               <Icon name='remove' /> Cancel
             </Button>
           </Modal.Actions>
