@@ -5,6 +5,7 @@ import {
   Button,
 } from 'semantic-ui-react';
 import firebase from '../../firebase';
+import FileModal from './FileModal';
 
 export default class MessageForm extends Component {
   state = {
@@ -13,6 +14,7 @@ export default class MessageForm extends Component {
     channel: this.props.currentChannel,
     user: this.props.user,
     errors: [],
+    isFileModalVisible: false,
   }
 
   createMessage = () => {
@@ -34,6 +36,10 @@ export default class MessageForm extends Component {
       [event.target.name]: event.target.value
     });
   }
+
+  openFileModal = () => this.setState({ isFileModalVisible: true });
+
+  closeFileModal = () => this.setState({ isFileModalVisible: false });
 
   sendMessage = () => {
     const {
@@ -79,6 +85,7 @@ export default class MessageForm extends Component {
       message,
       isLoading,
       errors,
+      isFileModalVisible,
     } = this.state;
 
     return (
@@ -109,7 +116,10 @@ export default class MessageForm extends Component {
             icon='cloud upload'
             labelPosition='right'
             content='Add Media'
+            onClick={this.openFileModal}
           />
+
+          <FileModal onClose={this.closeFileModal} isVisible={isFileModalVisible} />
         </Button.Group>
       </Segment>
     )
