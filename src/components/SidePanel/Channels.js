@@ -68,6 +68,10 @@ class Channels extends Component {
     this.addListeners();
   }
 
+  componentWillUnmount = () => {
+    this.removeListeners();
+  }
+
   closeModal = () => {
     this.setState({
       isModalOpen: false,
@@ -115,6 +119,10 @@ class Channels extends Component {
     }
 
     this.setState({ isFirstLoad: false });
+  }
+
+  removeListeners = () => {
+    this.state.channelsRef.off();
   }
 
   renderChannels = channels => (
