@@ -4,17 +4,18 @@ import {
   Header,
   Icon,
   Dropdown,
+  Image,
 } from 'semantic-ui-react';
 import firebase from '../../firebase';
 
 class UserPanel extends Component {
   state = {
-    currentUser: this.props.currentUser,
+    user: this.props.user,
   }
 
   getDropdownOptions = () => [
     {
-      text: <span>Signed in as <strong>{this.state.currentUser.displayName}</strong></span>,
+      text: <span>Signed in as <strong>{this.state.user.displayName}</strong></span>,
       disabled: true,
       key: 'user',
     },
@@ -36,7 +37,8 @@ class UserPanel extends Component {
   }
 
   render() {
-    console.log(this.props.currentUser);
+    const { user } = this.state;
+
     return (
       <Grid>
         <Grid.Column>
@@ -49,14 +51,24 @@ class UserPanel extends Component {
               <Icon name='code' />
               <Header.Content>DevChat</Header.Content>
             </Header>
+            <Header
+              as='h4'
+              style={{ padding: '0.25em' }}
+              inverted
+            >
+              <Dropdown trigger={
+                <span>
+                  <Image
+                    avatar
+                    src={user.photoURL}
+                    spaced='right'
+                  />
+                  {user.displayName}
+                </span>
+              }
+                options={this.getDropdownOptions()} />
+            </Header>
           </Grid.Row>
-          <Header
-            as='h4'
-            style={{ padding: '0.25em' }}
-            inverted
-          >
-            <Dropdown trigger={<span>{this.state.currentUser.displayName}</span>} options={this.getDropdownOptions()} />
-          </Header>
         </Grid.Column>
       </Grid>
     )

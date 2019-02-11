@@ -11,7 +11,7 @@ import SidePanel from './SidePanel/SidePanel';
 const App = props => (
   <Grid columns='equal' className='app'>
     <ColorPanel />
-    <SidePanel currentUser={props.currentUser} />
+    <SidePanel user={props.user} />
 
     <Grid.Column style={{ marginLeft: 320 }}>
       <Messages />
@@ -24,7 +24,7 @@ const App = props => (
 )
 
 const mapStateToProps = state => ({
-  currentUser: state.user.currentUser,
+  user: state.user.currentUser,
 })
 
 export default connect(mapStateToProps)(App);
