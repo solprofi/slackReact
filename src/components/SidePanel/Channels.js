@@ -20,6 +20,8 @@ class Channels extends Component {
     channelDetails: '',
     channelsRef: firebase.database().ref('channels'),
     user: this.props.user,
+    isFirstLoad: true,
+    activeChannel: '',
   }
 
   addChanel = () => {
@@ -58,18 +60,13 @@ class Channels extends Component {
 
     this.state.channelsRef.on('child_added', snap => {
       addedChannels.push(snap.val());
-      this.setState({ channels: addedChannels });
+      this.setState({ channels: addedChannels }, () => this.setFirstChannel());
     });
-  }
-
-  setCurrentChannel = channel => {
-    this.props.setCurrentChannel(channel);
   }
 
   componentDidMount = () => {
     this.addListeners();
   }
-
 
   closeModal = () => {
     this.setState({
@@ -77,12 +74,6 @@ class Channels extends Component {
       channelName: '',
       channelDetails: '',
     });
-  }
-
-  isFormValid = ({ channelName, channelDetails }) => channelName && channelDetails;
-
-  openModal = () => {
-    this.setState({ isModalOpen: true });
   }
 
   handleInputChange = event => {
@@ -97,6 +88,34 @@ class Channels extends Component {
     }
   }
 
+  isFormValid = ({ channelName, channelDetails }) => channelName && channelDetails;
+
+  openModal = () => {
+    this.setState({ isModalOpen: true });
+  }
+
+  setCurrentChannel = channel => {
+    this.setActiveChannel(channel);
+    this.props.setCurrentChannel(channel);
+  }
+
+  setActiveChannel = channel => {
+    this.setState({
+      activeChannel: channel.id,
+    });
+  }
+
+  setFirstChannel = () => {
+    const { channels, isFirstLoad } = this.state;
+    const firstChannel = channels[0];
+
+    if (channels.length > 0 && isFirstLoad) {
+      this.setActiveChannel(firstChannel);
+      this.props.setCurrentChannel(firstChannel);
+    }
+
+    this.setState({ isFirstLoad: false });
+  }
 
   renderChannels = channels => (
     channels.length > 0 && channels.map(channel => (
@@ -105,6 +124,7 @@ class Channels extends Component {
         name={channel.name}
         onClick={() => this.setCurrentChannel(channel)}
         style={{ opacity: 0.7 }}
+        active={channel.id === this.state.activeChannel}
       >
         # {channel.name}
       </Menu.Item>
