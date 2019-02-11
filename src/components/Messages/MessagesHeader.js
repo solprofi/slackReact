@@ -12,7 +12,7 @@ export default class MessagesHeader extends Component {
       <Segment clearing>
         <Header
           floated='left'
-          fluid={true}
+          fluid='true'
           as='h2'
           style={{ paddingBottom: 0 }}
         >
