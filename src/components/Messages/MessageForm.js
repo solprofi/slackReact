@@ -81,8 +81,6 @@ export default class MessageForm extends Component {
       errors,
     } = this.state;
 
-    console.log(this.props)
-
     return (
       <Segment className='message__form'>
         <Input
