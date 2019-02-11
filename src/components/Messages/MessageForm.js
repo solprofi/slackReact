@@ -80,6 +80,10 @@ export default class MessageForm extends Component {
     }
   }
 
+  uploadFile = (file, metadata) => {
+    console.log(file);
+  }
+
   render() {
     const {
       message,
@@ -119,7 +123,11 @@ export default class MessageForm extends Component {
             onClick={this.openFileModal}
           />
 
-          <FileModal onClose={this.closeFileModal} isVisible={isFileModalVisible} />
+          <FileModal
+            onClose={this.closeFileModal}
+            isVisible={isFileModalVisible}
+            uploadFile={this.uploadFile}
+          />
         </Button.Group>
       </Segment>
     )
