@@ -47,6 +47,10 @@ export default class MessageForm extends Component {
     return message;
   }
 
+  getPath = () => {
+    return this.props.isChannelPrivate ? `chat/private-${this.state.channel.id}/` : 'chat/public/';
+  }
+
   handleInputChange = event => {
     this.setState({
       [event.target.name]: event.target.value
@@ -62,14 +66,14 @@ export default class MessageForm extends Component {
       channel,
       errors,
     } = this.state;
-    const { messagesRef } = this.props;
+    const { getMessageRef } = this.props;
 
     if (message) {
       this.setState({
         isLoading: true,
       })
 
-      messagesRef
+      getMessageRef()
         .child(channel.id)
         .push()
         .set(this.createMessage())
@@ -109,8 +113,8 @@ export default class MessageForm extends Component {
 
   uploadFile = (file, metadata) => {
     const pathToUpload = this.state.channel.id;
-    const ref = this.props.messagesRef;
-    const filePath = `/chat/public/${uuidv4()}.jpg`;
+    const ref = this.props.getMessageRef();
+    const filePath = `${this.getPath()}${uuidv4()}.jpg`;
 
     this.setState({
       uploadState: 'uploading',
@@ -134,14 +138,14 @@ export default class MessageForm extends Component {
           () => {
             this.state.uploadTask.snapshot.ref.getDownloadURL().then(downloadURL => {
               this.sendFileMessage(downloadURL, ref, pathToUpload);
-            }),
+            },
               err => {
                 this.setState({
                   errors: this.state.errors.concat(err),
                   uploadTask: null,
                   uploadState: 'error',
                 })
-              }
+              })
           }
         )
       }

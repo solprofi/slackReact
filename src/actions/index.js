@@ -22,3 +22,11 @@ export const setCurrentChannel = channel => ({
     currentChannel: channel,
   }
 })
+
+export const setPrivateChannel = isChannelPrivate => ({
+  type: actionTypes.SET_PRIVATE_CHANNEL,
+  payload: {
+    isChannelPrivate,
+  }
+})
+

@@ -9,7 +9,7 @@ import {
 } from 'semantic-ui-react';
 import { connect } from 'react-redux';
 
-import { setCurrentChannel } from '../../actions/index';
+import { setCurrentChannel, setPrivateChannel } from '../../actions';
 import firebase from '../../firebase';
 
 class Channels extends Component {
@@ -101,6 +101,7 @@ class Channels extends Component {
   setCurrentChannel = channel => {
     this.setActiveChannel(channel);
     this.props.setCurrentChannel(channel);
+    this.props.setPrivateChannel(false);
   }
 
   setActiveChannel = channel => {
@@ -211,4 +212,4 @@ class Channels extends Component {
   }
 }
 
-export default connect(null, { setCurrentChannel })(Channels);
+export default connect(null, { setCurrentChannel, setPrivateChannel })(Channels);

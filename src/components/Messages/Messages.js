@@ -8,6 +8,7 @@ import Message from './Message';
 export default class Messages extends Component {
   state = {
     messagesRef: firebase.database().ref('messages'),
+    privateMessagesRef: firebase.database().ref('privateMessages'),
     currentChannel: this.props.currentChannel,
     user: this.props.user,
     messages: [],
@@ -16,6 +17,7 @@ export default class Messages extends Component {
     searchTerm: '',
     isSearchLoading: false,
     searchResults: [],
+    isChannelPrivate: this.props.isChannelPrivate,
   }
 
   addListeners = channelID => {
@@ -24,7 +26,9 @@ export default class Messages extends Component {
 
   addMessageListener = channelID => {
     let addedMessages = [];
-    this.state.messagesRef.child(channelID).on('child_added', snap => {
+    const messagesRef = this.getMessageRef();
+
+    messagesRef.child(channelID).on('child_added', snap => {
       addedMessages.push(snap.val());
       this.setState({
         messages: addedMessages,
@@ -56,7 +60,13 @@ export default class Messages extends Component {
     });
   }
 
-  displayChannelName = channel => channel ? `#${channel.name}` : '';
+  displayChannelName = channel => channel ? `${this.state.isChannelPrivate ? '@' : '#'}${channel.name}` : '';
+
+  getMessageRef = () => {
+    const { isChannelPrivate, messagesRef, privateMessagesRef } = this.state;
+
+    return isChannelPrivate ? privateMessagesRef : messagesRef;
+  }
 
   handleSearchChange = event => {
     this.setState({
@@ -94,6 +104,7 @@ export default class Messages extends Component {
       searchResults,
       searchTerm,
       isSearchLoading,
+      isChannelPrivate,
     } = this.state;
 
     return (
@@ -103,6 +114,7 @@ export default class Messages extends Component {
           numberOfUsers={numberOfUsers}
           channelName={this.displayChannelName(currentChannel)}
           handleSearchChange={this.handleSearchChange}
+          isChannelPrivate={isChannelPrivate}
         />
 
         <Segment>
@@ -115,6 +127,8 @@ export default class Messages extends Component {
           currentChannel={currentChannel}
           messagesRef={messagesRef}
           user={user}
+          isChannelPrivate={isChannelPrivate}
+          getMessageRef={this.getMessageRef}
         />
 
       </Fragment>
