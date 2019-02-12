@@ -14,6 +14,7 @@ export default class MessagesHeader extends Component {
       handleSearchChange,
       isSearchLoading,
       isChannelPrivate,
+      isChannelStarred,
     } = this.props;
 
     return (
@@ -26,7 +27,12 @@ export default class MessagesHeader extends Component {
         >
           <span>
             {channelName}
-            {!isChannelPrivate && <Icon name='star outline' color='black' />}
+            {!isChannelPrivate && (
+              <Icon
+                onClick={this.props.handleStar}
+                name={isChannelStarred ? 'star' : 'star outline'}
+                color={isChannelStarred ? 'yellow' : 'black'}
+              />)}
           </span>
 
           <Header.Subheader>{numberOfUsers} {numberOfUsers === 1 ? 'User' : 'Users'}</Header.Subheader>
