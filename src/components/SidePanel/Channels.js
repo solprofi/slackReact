@@ -149,11 +149,11 @@ class Channels extends Component {
 
     return (
       <Fragment>
-        <Menu.Menu style={{ paddingBottom: '2em' }}>
+        <Menu.Menu className='menu'>
           <Menu.Item>
             <span>
               <Icon name='exchange' /> CHANNELS
-          </span>
+            </span>
             {' '}
             ({channels.length}) <Icon name='add' onClick={this.openModal} />
           </Menu.Item>
