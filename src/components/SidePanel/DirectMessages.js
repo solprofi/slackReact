@@ -12,6 +12,7 @@ class DirectMessages extends Component {
     usersRef: firebase.database().ref('users'),
     connectedRef: firebase.database().ref('.info/connected'),
     presenceRef: firebase.database().ref('presence'),
+    activeChannel: '',
   }
 
   addListeners = currentUserId => {
@@ -84,6 +85,7 @@ class DirectMessages extends Component {
 
     this.props.setCurrentChannel(channelData);
     this.props.setPrivateChannel(true);
+    this.setActiveChannel(user.uid);
   }
 
 
@@ -102,8 +104,15 @@ class DirectMessages extends Component {
 
   isUserOnline = user => user.status === 'online';
 
+
+  setActiveChannel = userId => {
+    this.setState({
+      activeChannel: userId
+    });
+  }
+
   render() {
-    const { users } = this.state;
+    const { users, activeChannel } = this.state;
 
     return (
       <Menu.Menu className='menu'>
@@ -118,6 +127,7 @@ class DirectMessages extends Component {
             key={user.uid}
             style={{ opacity: 0.7, fontStyle: 'italic' }}
             onClick={() => this.changeChannel(user)}
+            active={user.uid === activeChannel}
           >
             <Icon
               name='circle'
