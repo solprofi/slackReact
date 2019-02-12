@@ -4,6 +4,8 @@ import {
   Input,
   Button,
 } from 'semantic-ui-react';
+import uuidv4 from 'uuid/v4';
+
 import firebase from '../../firebase';
 import FileModal from './FileModal';
 
@@ -15,13 +17,18 @@ export default class MessageForm extends Component {
     user: this.props.user,
     errors: [],
     isFileModalVisible: false,
+    uploadState: '',
+    uploadTask: null,
+    storageRef: firebase.storage().ref(),
+    percentUploaded: 0,
   }
 
-  createMessage = () => {
-    const { message, user } = this.state;
+  closeFileModal = () => this.setState({ isFileModalVisible: false });
 
-    return {
-      content: message,
+  createMessage = (fileUrl = null) => {
+    const { message: stateMessage, user } = this.state;
+
+    const message = {
       timeStamp: firebase.database.ServerValue.TIMESTAMP,
       user: {
         id: user.uid,
@@ -29,6 +36,14 @@ export default class MessageForm extends Component {
         name: user.displayName,
       }
     }
+
+    if (fileUrl !== null) {
+      message.image = fileUrl;
+    } else {
+      message.content = stateMessage;
+    }
+
+    return message;
   }
 
   handleInputChange = event => {
@@ -39,7 +54,6 @@ export default class MessageForm extends Component {
 
   openFileModal = () => this.setState({ isFileModalVisible: true });
 
-  closeFileModal = () => this.setState({ isFileModalVisible: false });
 
   sendMessage = () => {
     const {
@@ -80,8 +94,57 @@ export default class MessageForm extends Component {
     }
   }
 
+  sendFileMessage = (fileUrl, ref, pathToUpload) => {
+    ref.child(pathToUpload)
+      .push()
+      .set(this.createMessage(fileUrl))
+      .then(() => {
+        this.setState({ uploadState: 'done' });
+      })
+      .catch(err => this.setState({
+        errors: this.state.errors.concat(err)
+      }));
+  }
+
   uploadFile = (file, metadata) => {
-    console.log(file);
+    const pathToUpload = this.state.channel.id;
+    const ref = this.props.messagesRef;
+    const filePath = `/chat/public/${uuidv4()}.jpg`;
+
+    this.setState({
+      uploadState: 'uploading',
+      uploadTask: this.state.storageRef.child(filePath).put(file, metadata)
+    },
+      () => {
+        this.state.uploadTask.on('state_changed', snap => {
+          const percentUploaded = Math.round((snap.bytesTransferred / snap.totalBytes) * 100);
+
+          this.setState({
+            percentUploaded,
+          });
+        },
+          err => {
+            this.setState({
+              errors: this.state.errors.concat(err),
+              uploadTask: null,
+              uploadState: 'error',
+            })
+          },
+          () => {
+            this.state.uploadTask.snapshot.ref.getDownloadURL().then(downloadURL => {
+              this.sendFileMessage(downloadURL, ref, pathToUpload);
+            }),
+              err => {
+                this.setState({
+                  errors: this.state.errors.concat(err),
+                  uploadTask: null,
+                  uploadState: 'error',
+                })
+              }
+          }
+        )
+      }
+    )
   }
 
   render() {

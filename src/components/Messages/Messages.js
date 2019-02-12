@@ -56,7 +56,6 @@ export default class Messages extends Component {
       messages,
     } = this.state;
 
-    console.log(this.state)
     return (
       <Fragment>
         <MessagesHeader />
