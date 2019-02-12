@@ -8,6 +8,8 @@ import {
 
 export default class MessagesHeader extends Component {
   render() {
+    const { channelName, numberOfUsers, } = this.props;
+
     return (
       <Segment clearing>
         <Header
@@ -17,11 +19,11 @@ export default class MessagesHeader extends Component {
           style={{ paddingBottom: 0 }}
         >
           <span>
-            Channel
+            {channelName}
             <Icon name='star outline' color='black' />
           </span>
 
-          <Header.Subheader>2 Users</Header.Subheader>
+          <Header.Subheader>{numberOfUsers} {numberOfUsers === 1 ? 'User' : 'Users'}</Header.Subheader>
         </Header>
 
         <Header floated='right'>

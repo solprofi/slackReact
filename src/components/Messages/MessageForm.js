@@ -8,6 +8,7 @@ import uuidv4 from 'uuid/v4';
 
 import firebase from '../../firebase';
 import FileModal from './FileModal';
+import ProgressBar from './ProgressBar';
 
 export default class MessageForm extends Component {
   state = {
@@ -153,6 +154,8 @@ export default class MessageForm extends Component {
       isLoading,
       errors,
       isFileModalVisible,
+      uploadState,
+      percentUploaded,
     } = this.state;
 
     return (
@@ -184,14 +187,16 @@ export default class MessageForm extends Component {
             labelPosition='right'
             content='Add Media'
             onClick={this.openFileModal}
+            disabled={uploadState === 'uploading'}
           />
 
-          <FileModal
-            onClose={this.closeFileModal}
-            isVisible={isFileModalVisible}
-            uploadFile={this.uploadFile}
-          />
         </Button.Group>
+        <FileModal
+          onClose={this.closeFileModal}
+          isVisible={isFileModalVisible}
+          uploadFile={this.uploadFile}
+        />
+        <ProgressBar percentUploaded={percentUploaded} uploadState={uploadState} />
       </Segment>
     )
   }

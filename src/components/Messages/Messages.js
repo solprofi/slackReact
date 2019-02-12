@@ -12,6 +12,7 @@ export default class Messages extends Component {
     user: this.props.user,
     messages: [],
     messagesLoading: true,
+    numberOfUsers: 0,
   }
 
   addListeners = channelID => {
@@ -26,6 +27,8 @@ export default class Messages extends Component {
         messages: addedMessages,
         messagesLoading: false,
       });
+
+      this.countUniqueUsers(addedMessages);
     });
   }
 
@@ -37,6 +40,21 @@ export default class Messages extends Component {
     }
   }
 
+  countUniqueUsers = messages => {
+    const uniqueUsers = messages.reduce((acc, message) => {
+      if (!acc.includes(message.user.name)) {
+        acc.push(message.user.name);
+      }
+      return acc;
+    }, []);
+
+    this.setState({
+      numberOfUsers: uniqueUsers.length,
+    });
+  }
+
+  displayChannelName = channel => channel ? `#${channel.name}` : '';
+
   renderMessages = messages => (
     messages.length > 0 && messages.map(message => (
       <Message
@@ -47,18 +65,18 @@ export default class Messages extends Component {
     ))
   )
 
-
   render() {
     const {
       messagesRef,
       currentChannel,
       user,
       messages,
+      numberOfUsers,
     } = this.state;
 
     return (
       <Fragment>
-        <MessagesHeader />
+        <MessagesHeader numberOfUsers={numberOfUsers} channelName={this.displayChannelName(currentChannel)} />
 
         <Segment>
           <Comment.Group className='messages'>
