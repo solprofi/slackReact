@@ -8,7 +8,12 @@ import {
 
 export default class MessagesHeader extends Component {
   render() {
-    const { channelName, numberOfUsers, } = this.props;
+    const {
+      channelName,
+      numberOfUsers,
+      handleSearchChange,
+      isSearchLoading,
+    } = this.props;
 
     return (
       <Segment clearing>
@@ -32,6 +37,8 @@ export default class MessagesHeader extends Component {
             icon='search'
             name='searchTerm'
             placeholder='Search Messages'
+            onChange={handleSearchChange}
+            loading={isSearchLoading}
           />
         </Header>
       </Segment>

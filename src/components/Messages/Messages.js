@@ -13,6 +13,9 @@ export default class Messages extends Component {
     messages: [],
     messagesLoading: true,
     numberOfUsers: 0,
+    searchTerm: '',
+    isSearchLoading: false,
+    searchResults: [],
   }
 
   addListeners = channelID => {
@@ -55,6 +58,22 @@ export default class Messages extends Component {
 
   displayChannelName = channel => channel ? `#${channel.name}` : '';
 
+  handleSearchChange = event => {
+    this.setState({
+      searchTerm: event.target.value,
+      isSearchLoading: true,
+    }, () => this.handleSearchMessages());
+  }
+
+  handleSearchMessages = () => {
+    const channelMessages = [...this.state.messages];
+    const regex = new RegExp(this.state.searchTerm, 'gi');
+    const searchResults = channelMessages.filter(message => message.content &&
+      (message.content.match(regex) || message.user.name.match(regex)));
+    this.setState({ searchResults });
+    setTimeout(() => this.setState({ isSearchLoading: false }), 500);
+  }
+
   renderMessages = messages => (
     messages.length > 0 && messages.map(message => (
       <Message
@@ -72,15 +91,23 @@ export default class Messages extends Component {
       user,
       messages,
       numberOfUsers,
+      searchResults,
+      searchTerm,
+      isSearchLoading,
     } = this.state;
 
     return (
       <Fragment>
-        <MessagesHeader numberOfUsers={numberOfUsers} channelName={this.displayChannelName(currentChannel)} />
+        <MessagesHeader
+          isSearchLoading={isSearchLoading}
+          numberOfUsers={numberOfUsers}
+          channelName={this.displayChannelName(currentChannel)}
+          handleSearchChange={this.handleSearchChange}
+        />
 
         <Segment>
           <Comment.Group className='messages'>
-            {this.renderMessages(messages)}
+            {searchTerm ? this.renderMessages(searchResults) : this.renderMessages(messages)}
           </Comment.Group>
         </Segment>
 
