@@ -10,7 +10,7 @@ import SidePanel from './SidePanel/SidePanel';
 
 const App = ({ user, currentChannel, isChannelPrivate, userPosts }) => (
   <Grid columns='equal' className='app'>
-    <ColorPanel />
+    <ColorPanel user={user} key={user && user.name} />
     <SidePanel
       key={user && user.uid}
       user={user}
@@ -28,7 +28,7 @@ const App = ({ user, currentChannel, isChannelPrivate, userPosts }) => (
     <Grid.Column width='4'>
       <MetaPanel
         isChannelPrivate={isChannelPrivate}
-        key={currentChannel && currentChannel.id}
+        key={currentChannel && currentChannel.name}
         currentChannel={currentChannel}
         userPosts={userPosts}
       />
