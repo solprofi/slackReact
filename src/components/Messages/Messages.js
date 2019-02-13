@@ -1,11 +1,14 @@
 import React, { Component, Fragment } from 'react';
 import { Segment, Comment } from 'semantic-ui-react';
+import { connect } from 'react-redux';
+
+import { setUserPosts } from '../../actions';
 import MessagesHeader from './MessagesHeader';
 import MessageForm from './MessageForm';
 import firebase from '../../firebase';
 import Message from './Message';
 
-export default class Messages extends Component {
+class Messages extends Component {
   state = {
     usersRef: firebase.database().ref('users'),
     messagesRef: firebase.database().ref('messages'),
@@ -38,6 +41,7 @@ export default class Messages extends Component {
       });
 
       this.countUniqueUsers(addedMessages);
+      this.countUserPosts(addedMessages);
     });
   }
 
@@ -76,6 +80,23 @@ export default class Messages extends Component {
     this.setState({
       numberOfUsers: uniqueUsers.length,
     });
+  }
+
+  countUserPosts = messages => {
+    let userPosts = messages.reduce((acc, message) => {
+      if (message.user.name in acc) {
+        acc[message.user.name].count += 1;
+      } else {
+        acc[message.user.name] = {
+          avatar: message.user.avatar,
+          count: 1
+        }
+      }
+
+      return acc;
+    }, {});
+
+    this.props.setUserPosts(userPosts);
   }
 
   displayChannelName = channel => channel ? `${this.state.isChannelPrivate ? '@' : '#'}${channel.name}` : '';
@@ -127,8 +148,6 @@ export default class Messages extends Component {
       currentChannel: channel,
       user,
     } = this.state;
-
-    console.log(channel)
 
     if (isChannelStarred) {
       usersRef
@@ -199,3 +218,5 @@ export default class Messages extends Component {
     )
   }
 }
+
+export default connect(null, { setUserPosts })(Messages);
