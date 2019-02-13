@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { Component, Fragment } from 'react';
 import {
   Sidebar,
   Divider,
@@ -10,10 +10,13 @@ import {
   Segment,
 } from 'semantic-ui-react';
 import { SliderPicker } from 'react-color';
+import { connect } from 'react-redux';
+
+import { setColors } from '../../actions';
 
 import firebase from '../../firebase';
 
-export default class ColorPanel extends Component {
+class ColorPanel extends Component {
 
   state = {
     isModalOpen: false,
@@ -21,9 +24,25 @@ export default class ColorPanel extends Component {
     secondaryColor: '',
     usersRef: firebase.database().ref('users'),
     user: this.props.user,
+    userColors: [],
   }
 
-  openModal = () => { this.setState({ isModalOpen: true }) };
+  addListeners = userId => {
+    let colors = [];
+
+    this.state.usersRef
+      .child(`${userId}/colors`)
+      .on('child_added', snap => {
+        colors.unshift(snap.val());
+        this.setState({ userColors: colors })
+      });
+  }
+
+  componentDidMount = () => {
+    if (this.state.user) {
+      this.addListeners(this.state.user.uid);
+    }
+  }
 
   closeModal = () => { this.setState({ isModalOpen: false }) };
 
@@ -39,6 +58,23 @@ export default class ColorPanel extends Component {
     }
   }
 
+  openModal = () => { this.setState({ isModalOpen: true }) };
+
+  renderColors = colors => (
+    colors.length > 0 && colors.map((color, index) => (
+      <Fragment key={index}>
+        <Divider />
+        <div className='color__container' onClick={() => this.props.setColors(color.primary, color.secondary)}>
+          <div className='color__square' style={{ background: color.primary }}>
+            <div className='color__overlay' style={{ background: color.secondary }}>
+            </div>
+          </div>
+        </div>
+
+      </Fragment>
+    ))
+  )
+
   saveColors = (primary, secondary) => {
     this.state.usersRef
       .child(`${this.state.user.uid}/colors`)
@@ -53,12 +89,12 @@ export default class ColorPanel extends Component {
       .catch(err => console.error(err));
   }
 
-
   render() {
     const {
       isModalOpen,
       primaryColor,
       secondaryColor,
+      userColors,
     } = this.state;
 
     return (
@@ -77,6 +113,8 @@ export default class ColorPanel extends Component {
           icon='add'
           onClick={this.openModal}
         />
+
+        {this.renderColors(userColors)}
 
         <Modal
           open={isModalOpen}
@@ -118,3 +156,5 @@ export default class ColorPanel extends Component {
     )
   }
 }
+
+export default connect(null, { setColors })(ColorPanel);
