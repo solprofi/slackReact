@@ -21,6 +21,7 @@ export default class MessageForm extends Component {
     uploadState: '',
     uploadTask: null,
     storageRef: firebase.storage().ref(),
+    typingRef: firebase.database().ref('typing'),
     percentUploaded: 0,
   }
 
@@ -57,14 +58,36 @@ export default class MessageForm extends Component {
     });
   }
 
-  openFileModal = () => this.setState({ isFileModalVisible: true });
+  handleKeyDown = () => {
+    const {
+      typingRef,
+      message,
+      channel,
+      user,
+    } = this.state;
 
+    if (message) {
+      typingRef
+        .child(channel.id)
+        .child(user.uid)
+        .set(user.displayName)
+    } else {
+      typingRef
+        .child(channel.id)
+        .child(user.uid)
+        .remove();
+    }
+  }
+
+  openFileModal = () => this.setState({ isFileModalVisible: true });
 
   sendMessage = () => {
     const {
       message,
       channel,
       errors,
+      typingRef,
+      user,
     } = this.state;
     const { getMessageRef } = this.props;
 
@@ -82,7 +105,11 @@ export default class MessageForm extends Component {
             isLoading: false,
             message: '',
             errors: [],
-          })
+          });
+          typingRef
+            .child(channel.id)
+            .child(user.uid)
+            .remove();
         })
         .catch(error => {
           this.setState({
@@ -168,6 +195,7 @@ export default class MessageForm extends Component {
           fluid
           name='message'
           onChange={this.handleInputChange}
+          onKeyDown={this.handleKeyDown}
           value={message}
           style={{ marginBottom: '0.7em' }}
           label={<Button icon='add' />}
