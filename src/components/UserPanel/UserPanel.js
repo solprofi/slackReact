@@ -5,13 +5,24 @@ import {
   Icon,
   Dropdown,
   Image,
+  Modal,
+  Input,
+  Button,
 } from 'semantic-ui-react';
+import AvatarEditor from 'react-avatar-editor';
+
 import firebase from '../../firebase';
 
 class UserPanel extends Component {
   state = {
     user: this.props.user,
+    isModalOpen: false,
+    previewImage: '',
+    croppedImage: '',
+    blob: '',
   }
+
+  closeModal = () => { this.setState({ isModalOpen: false }); }
 
   getDropdownOptions = () => [
     {
@@ -20,7 +31,7 @@ class UserPanel extends Component {
       key: 'user',
     },
     {
-      text: <span>Change Avatar</span>,
+      text: <span onClick={this.openModal}>Change Avatar</span>,
       key: 'avatar',
     },
     {
@@ -29,6 +40,31 @@ class UserPanel extends Component {
     }
   ]
 
+  handleChange = event => {
+    const file = event.target.files[0];
+    const reader = new FileReader();
+
+    if (file) {
+      reader.readAsDataURL(file);
+      reader.addEventListener('load', () => {
+        this.setState({ previewImage: reader.result });
+      });
+    }
+  }
+
+  handleCropImage = () => {
+    if (this.avatarEditor) {
+      this.avatarEditor.getImageScaledToCanvas().toBlob(blob => {
+        const imageUrl = URL.createObjectURL(blob);
+
+        this.setState({
+          croppedImage: imageUrl,
+          blob
+        });
+      });
+    }
+  }
+
   handleSignOut = () => {
     firebase
       .auth()
@@ -36,8 +72,15 @@ class UserPanel extends Component {
       .then(() => console.log('signed Out'))
   }
 
+  openModal = () => { this.setState({ isModalOpen: true }); }
+
   render() {
-    const { user } = this.state;
+    const {
+      user,
+      isModalOpen,
+      previewImage,
+      croppedImage,
+    } = this.state;
     const { primaryColor } = this.props;
 
     return (
@@ -70,6 +113,77 @@ class UserPanel extends Component {
                 options={this.getDropdownOptions()} />
             </Header>
           </Grid.Row>
+
+          <Modal
+            basic
+            open={isModalOpen}
+            onClose={this.closeModal}
+          >
+            <Modal.Header>Change User Avatar</Modal.Header>
+            <Modal.Content>
+
+              <Input
+                type='file'
+                label='Change User Avatar'
+                fluid
+                name='previewImage'
+                onChange={this.handleChange}
+              />
+              <Grid
+                centered
+                stackable
+                columns={2}
+              >
+                <Grid.Row centered>
+                  <Grid.Column className='ui center aligned grid'>
+                    {previewImage && <AvatarEditor
+                      image={previewImage}
+                      width={120}
+                      height={120}
+                      border={50}
+                      scale={1.2}
+                      ref={node => this.avatarEditor = node}
+                    />
+                    }
+                  </Grid.Column>
+                  <Grid.Column>
+                    {croppedImage &&
+                      <Image
+                        style={{ margin: '3.5em auto' }}
+                        width={120}
+                        height={120}
+                        src={croppedImage}
+                      />
+                    }
+                  </Grid.Column>
+                </Grid.Row>
+              </Grid>
+            </Modal.Content>
+            <Modal.Actions>
+              {croppedImage &&
+                <Button
+                  color='green'
+                  inverted
+                >
+                  <Icon name='save' /> Save Image
+              </Button>
+              }
+              <Button
+                color='green'
+                inverted
+                onClick={this.handleCropImage}
+              >
+                <Icon name='image' /> Preview
+              </Button>
+              <Button
+                color='red'
+                inverted
+                onClick={this.closeModal}
+              >
+                <Icon name='remove' /> Cancel
+              </Button>
+            </Modal.Actions>
+          </Modal>
         </Grid.Column>
       </Grid>
     )
