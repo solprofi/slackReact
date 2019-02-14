@@ -115,6 +115,13 @@ class Messages extends Component {
     }
   }
 
+  componentDidUpdate = (prevProps, prevState) => {
+    if (this.messagesEnd) {
+      this.scrollToBottom();
+    }
+  }
+
+
   countUniqueUsers = messages => {
     const uniqueUsers = messages.reduce((acc, message) => {
       if (!acc.includes(message.user.name)) {
@@ -199,10 +206,12 @@ class Messages extends Component {
         <span className='user__typing'>{user.name} is typing</span>
         <Typing />
       </div>
-    )
-
-    )
+    ))
   )
+
+  scrollToBottom = () => {
+    this.messagesEnd.scrollIntoView({ behavior: 'smooth' });
+  }
 
   starChannel = () => {
     const {
@@ -268,6 +277,7 @@ class Messages extends Component {
           <Comment.Group className='messages'>
             {searchTerm ? this.renderMessages(searchResults) : this.renderMessages(messages)}
             {this.renderTypingUsers(typingUsers)}
+            <div ref={node => this.messagesEnd = node} />
           </Comment.Group>
         </Segment>
 
