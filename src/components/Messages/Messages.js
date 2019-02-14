@@ -8,6 +8,8 @@ import MessageForm from './MessageForm';
 import firebase from '../../firebase';
 import Message from './Message';
 import Typing from './Typing';
+import Skeleton from './Skeleton';
+
 
 class Messages extends Component {
   state = {
@@ -121,7 +123,6 @@ class Messages extends Component {
     }
   }
 
-
   countUniqueUsers = messages => {
     const uniqueUsers = messages.reduce((acc, message) => {
       if (!acc.includes(message.user.name)) {
@@ -194,6 +195,16 @@ class Messages extends Component {
     ))
   )
 
+  renderMessageSkeleton = isLoading => (
+    isLoading ? (
+      <Fragment>
+        {[...Array(10)].map((val, index) => (
+          <Skeleton key={index} />
+        ))}
+      </Fragment>
+    ) : null
+  )
+
   renderTypingUsers = typingUsers => (
     typingUsers.length > 0 && typingUsers.map(user => (
       <div
@@ -259,6 +270,7 @@ class Messages extends Component {
       isChannelPrivate,
       isChannelStarred,
       typingUsers,
+      messagesLoading,
     } = this.state;
 
     return (
@@ -275,6 +287,7 @@ class Messages extends Component {
 
         <Segment>
           <Comment.Group className='messages'>
+            {this.renderMessageSkeleton(messagesLoading)}
             {searchTerm ? this.renderMessages(searchResults) : this.renderMessages(messages)}
             {this.renderTypingUsers(typingUsers)}
             <div ref={node => this.messagesEnd = node} />
