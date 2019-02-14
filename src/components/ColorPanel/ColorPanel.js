@@ -44,6 +44,10 @@ class ColorPanel extends Component {
     }
   }
 
+  componentWillUnmount = () => {
+    this.removeListener();
+  }
+
   closeModal = () => { this.setState({ isModalOpen: false }) };
 
   handleChangePrimary = color => this.setState({ primaryColor: color.hex });
@@ -59,6 +63,10 @@ class ColorPanel extends Component {
   }
 
   openModal = () => { this.setState({ isModalOpen: true }) };
+
+  removeListener = () => {
+    this.state.usersRef.child(`${this.state.user.uid}/colors`).off();
+  }
 
   renderColors = colors => (
     colors.length > 0 && colors.map((color, index) => (

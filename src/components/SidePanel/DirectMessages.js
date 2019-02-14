@@ -96,6 +96,11 @@ class DirectMessages extends Component {
     }
   }
 
+  componentWillUnmount = () => {
+    this.removeListeners();
+  }
+
+
   getChannelPath = userId => {
     const currentUserId = this.state.user.uid;
 
@@ -109,6 +114,12 @@ class DirectMessages extends Component {
     this.setState({
       activeChannel: userId
     });
+  }
+
+  removeListeners = () => {
+    this.state.usersRef.off();
+    this.state.presenceRef.off();
+    this.state.connectedRef.off();
   }
 
   render() {

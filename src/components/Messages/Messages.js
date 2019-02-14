@@ -29,6 +29,7 @@ class Messages extends Component {
     isChannelPrivate: this.props.isChannelPrivate,
     isChannelStarred: false,
     typingUsers: [],
+    listeners: [],
   }
 
   addListeners = channelId => {
@@ -50,6 +51,21 @@ class Messages extends Component {
       this.countUniqueUsers(addedMessages);
       this.countUserPosts(addedMessages);
     });
+
+    this.addToListeners(channelId, messagesRef, 'child_added');
+  }
+
+  addToListeners = (id, ref, event) => {
+    const index = this.state.listeners.findIndex(listener => {
+      return listener.id === id && listener.ref === ref && listener.event === event;
+    });
+
+    if (index === -1) {
+      const newListener = { id, ref, event };
+      this.setState({
+        listeners: this.state.listeners.concat(newListener),
+      });
+    }
   }
 
   addTypingListener = channelId => {
@@ -67,6 +83,8 @@ class Messages extends Component {
         }
       });
 
+    this.addToListeners(channelId, this.state.typingRef, 'child_added');
+
     this.state.typingRef
       .child(channelId)
       .on('child_removed', snap => {
@@ -77,6 +95,8 @@ class Messages extends Component {
           this.setState({ typingUsers });
         }
       });
+
+    this.addToListeners(channelId, this.state.typingRef, 'child_removed');
 
     this.state.connectedRef.on('value', snap => {
       if (snap.val() === true) {
@@ -90,7 +110,8 @@ class Messages extends Component {
             }
           });
       }
-    })
+    });
+
   }
 
   addUsersStarsListener = (channelId, userId) => {
@@ -109,9 +130,14 @@ class Messages extends Component {
   }
 
   componentDidMount = () => {
-    const { currentChannel, user } = this.state;
+    const {
+      currentChannel,
+      user,
+      listeners,
+    } = this.state;
 
     if (currentChannel && user) {
+      this.removeListeners(listeners);
       this.addListeners(currentChannel.id);
       this.addUsersStarsListener(currentChannel.id, user.uid);
     }
@@ -121,6 +147,11 @@ class Messages extends Component {
     if (this.messagesEnd) {
       this.scrollToBottom();
     }
+  }
+
+  componentWillUnmount = () => {
+    this.removeListeners(this.state.listeners);
+    this.state.connectedRef.off();
   }
 
   countUniqueUsers = messages => {
@@ -182,6 +213,14 @@ class Messages extends Component {
       isChannelStarred: !prevState.isChannelStarred,
     })), () => {
       this.starChannel();
+    });
+  }
+
+  removeListeners = listeners => {
+    listeners.forEach(listener => {
+      listener.ref
+        .child(listener.id)
+        .off(listener.event);
     });
   }
 

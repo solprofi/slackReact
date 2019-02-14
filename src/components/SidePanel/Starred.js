@@ -21,6 +21,11 @@ class Starred extends Component {
     }
   }
 
+  componentWillUnmount = () => {
+    this.state.removeListener();
+  }
+
+
   addListeners = userId => {
     this.state.usersRef
       .child(userId)
@@ -43,6 +48,10 @@ class Starred extends Component {
         this.setState({ starredChannels: filteredChannels });
       });
   };
+
+  removeListener = () => {
+    this.state.usersRef.child(`${this.state.user.uid}/starred`).off();
+  }
 
 
   renderChannels = channels => (

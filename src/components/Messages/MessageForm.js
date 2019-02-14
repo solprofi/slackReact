@@ -45,6 +45,16 @@ export default class MessageForm extends Component {
     });
   };
 
+  componentWillUnmount = () => {
+    if (this.state.uploadTask !== null) {
+      this.state.uploadTask.cancel();
+      this.setState({
+        uploadTask: null
+      });
+    }
+  }
+
+
   createMessage = (fileUrl = null) => {
     const { message: stateMessage, user } = this.state;
 
@@ -67,7 +77,7 @@ export default class MessageForm extends Component {
   }
 
   getPath = () => {
-    return this.props.isChannelPrivate ? `chat/private-${this.state.channel.id}/` : 'chat/public/';
+    return this.props.isChannelPrivate ? `chat/private/${this.state.channel.id}/` : 'chat/public/';
   }
 
   handleAddEmoji = emoji => {
