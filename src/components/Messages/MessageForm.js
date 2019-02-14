@@ -5,6 +5,8 @@ import {
   Button,
 } from 'semantic-ui-react';
 import uuidv4 from 'uuid/v4';
+import { Picker, emojiIndex } from 'emoji-mart';
+import 'emoji-mart/css/emoji-mart.css';
 
 import firebase from '../../firebase';
 import FileModal from './FileModal';
@@ -23,9 +25,25 @@ export default class MessageForm extends Component {
     storageRef: firebase.storage().ref(),
     typingRef: firebase.database().ref('typing'),
     percentUploaded: 0,
+    isEmojiPickerVisible: false,
   }
 
   closeFileModal = () => this.setState({ isFileModalVisible: false });
+
+  colonToUnicode = message => {
+    return message.replace(/:[A-Za-z0-9_+-]+:/g, x => {
+      x = x.replace(/:/g, "");
+      let emoji = emojiIndex.emojis[x];
+      if (typeof emoji !== "undefined") {
+        let unicode = emoji.native;
+        if (typeof unicode !== "undefined") {
+          return unicode;
+        }
+      }
+      x = ":" + x + ":";
+      return x;
+    });
+  };
 
   createMessage = (fileUrl = null) => {
     const { message: stateMessage, user } = this.state;
@@ -50,6 +68,18 @@ export default class MessageForm extends Component {
 
   getPath = () => {
     return this.props.isChannelPrivate ? `chat/private-${this.state.channel.id}/` : 'chat/public/';
+  }
+
+  handleAddEmoji = emoji => {
+    const oldMessage = this.state.message;
+    const newMessage = this.colonToUnicode(` ${oldMessage} ${emoji.colons} `);
+
+    this.setState({
+      message: newMessage,
+      isEmojiPickerVisible: false,
+    });
+
+    setTimeout(() => this.inputRef.focus(), 0);
   }
 
   handleInputChange = event => {
@@ -138,6 +168,10 @@ export default class MessageForm extends Component {
       }));
   }
 
+  toggleEmojiPicker = () => {
+    this.setState({ isEmojiPickerVisible: !this.state.isEmojiPickerVisible });
+  }
+
   uploadFile = (file, metadata) => {
     const pathToUpload = this.state.channel.id;
     const ref = this.props.getMessageRef();
@@ -187,18 +221,32 @@ export default class MessageForm extends Component {
       isFileModalVisible,
       uploadState,
       percentUploaded,
+      isEmojiPickerVisible
     } = this.state;
 
     return (
       <Segment className='message__form'>
+        {isEmojiPickerVisible &&
+          <Picker
+            className='emojiPicker'
+            set='apple'
+            title='Pick Your Emoji'
+            emoji='point_up'
+            onSelect={this.handleAddEmoji}
+          />}
         <Input
           fluid
           name='message'
           onChange={this.handleInputChange}
           onKeyDown={this.handleKeyDown}
+          ref={node => this.inputRef = node}
           value={message}
           style={{ marginBottom: '0.7em' }}
-          label={<Button icon='add' />}
+          label={<Button
+            icon={isEmojiPickerVisible ? 'close' : 'add'}
+            content={isEmojiPickerVisible ? 'Close' : null}
+            onClick={this.toggleEmojiPicker}
+          />}
           labelPosition='left'
           placeholder='Write Your Message'
           className={errors.some(error => error.message.includes('message')) ? 'error' : ''}
